@@ -1,0 +1,24 @@
+* { box-sizing: border-box; }
+body { margin: 0; font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; height: 100vh; display: flex; flex-direction: column; }
+header { background: #f7f9fb; padding: 10px 16px; display: flex; gap: 12px; align-items: center; border-bottom: 1px solid #e6eef6; }
+.brand { font-weight: 700; font-size: 1.1rem; color: #034; }
+.session { color: #345; }
+.user input { padding: 4px 8px; }
+
+main { flex: 1; display: flex; gap: 12px; padding: 12px; }
+.tools, .participants { width: 220px; background: #fff; border: 1px solid #e6eef6; border-radius: 8px; padding: 12px; }
+.canvas-wrap { flex: 1; display: flex; background: linear-gradient(180deg,#f8fbff, #fff); border-radius: 8px; align-items: center; justify-content: center; padding: 10px; border: 1px solid #e6eef6; position: relative; }
+
+#board { width: 100%; height: 100%; max-height: calc(100vh - 180px); background: white; border-radius: 4px; box-shadow: 0 4px 18px rgba(10,20,40,0.04); cursor: crosshair; display: block; }
+
+.tool-row { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
+button { padding: 6px 10px; border-radius: 6px; border: none; background: #0b74ff; color: white; cursor: pointer; }
+button:hover { filter: brightness(0.95); }
+.chat-box { height: 200px; overflow-y: auto; border: 1px solid #eef6ff; padding: 8px; border-radius: 6px; background: #fbfdff; margin-bottom: 6px; }
+#chatInput { width: 100%; padding: 6px 8px; border-radius: 6px; border: 1px solid #e6eef6; }
+
+.participants h3 { margin-top: 0; }
+.participants ul { list-style: none; margin: 0; padding: 0; }
+.participants li { padding: 6px 0; border-bottom: 1px dashed #f0f6ff; }
+
+footer { padding: 8px 12px; background: #f7f9fb; border-top: 1px solid #e6eef6; text-align:left; font-size: 12px; color:#556; }

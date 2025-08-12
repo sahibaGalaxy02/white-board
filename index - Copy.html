@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>LiveBoard</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+        background: #f8f9fa;
+    }
+    header, footer {
+        background: #f1f1f1;
+        padding: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-bottom: 1px solid #ddd;
+    }
+    main {
+        flex: 1;
+        display: flex;
+    }
+    #tools, #participants {
+        background: #ffffff;
+        padding: 10px;
+        width: 200px;
+        border-right: 1px solid #ddd;
+        box-shadow: 0 0 5px rgba(0,0,0,0.1);
+    }
+    #participants {
+        border-left: 1px solid #ddd;
+        border-right: none;
+    }
+    #board {
+        flex: 1;
+        background: white;
+        cursor: crosshair;
+        border: 1px solid #ddd;
+    }
+    button {
+        margin: 5px 0;
+        padding: 5px 10px;
+        border: none;
+        background: #007bff;
+        color: white;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+    button:hover {
+        background: #0056b3;
+    }
+    input[type="color"], input[type="range"] {
+        margin: 5px 0;
+        width: 100%;
+    }
+    #chat {
+        margin-top: 20px;
+    }
+    #chat-input {
+        width: 100%;
+        padding: 5px;
+        border: 1px solid #ccc;
+    }
+</style>
+</head>
+<body>
+
+<header>
+    <div>
+        <strong>LiveBoard</strong> &nbsp;
+        Session: <input type="text" id="session-id" placeholder="Session code">
+        You: <input type="text" id="username" placeholder="Your name">
+    </div>
+</header>
+
+<main>
+    <aside id="tools">
+        Pen: <input type="color" id="pen-color" value="#000000">
+        <input type="range" id="pen-size" min="1" max="20" value="5">
+        <button id="eraser">Eraser</button>
+        <button id="undo">Undo</button>
+        <button id="clear">Clear</button>
+        <button id="replay">Replay</button>
+        <button id="save">Save PNG</button>
+    </aside>
+
+    <canvas id="board"></canvas>
+
+    <aside id="participants">
+        <h3>Participants</h3>
+        <ul id="user-list"></ul>
+        <div id="chat">
+            <input type="text" id="chat-input" placeholder="Type and press Enter...">
+        </div>
+    </aside>
+</main>
+
+<footer>
+    <div>Session info: Open in multiple windows to test collaboration (offline for now).</div>
+</footer>
+
+<script>
+    const canvas = document.getElementById('board');
+    const ctx = canvas.getContext('2d');
+    let drawing = false;
+    let penColor = document.getElementById('pen-color').value;
+    let penSize = document.getElementById('pen-size').value;
+    let paths = [];
+    let currentPath = [];
+
+    function resizeCanvas() {
+        canvas.width = window.innerWidth - 400;
+        canvas.height = window.innerHeight - 100;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    document.getElementById('pen-color').addEventListener('input', e => penColor = e.target.value);
+    document.getElementById('pen-size').addEventListener('input', e => penSize = e.target.value);
+
+    canvas.addEventListener('mousedown', startDrawing);
+    canvas.addEventListener('mouseup', stopDrawing);
+    canvas.addEventListener('mousemove', draw);
+
+    function startDrawing(e) {
+        drawing = true;
+        currentPath = [];
+        draw(e);
+    }
+
+    function stopDrawing() {
+        drawing = false;
+        if (currentPath.length) paths.push(currentPath);
+    }
+
+    function draw(e) {
+        if (!drawing) return;
+        ctx.strokeStyle = penColor;
+        ctx.lineWidth = penSize;
+        ctx.lineCap = 'round';
+        const rect = canvas.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        ctx.lineTo(x, y);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+        currentPath.push({ x, y, color: penColor, size: penSize });
+    }
+
+    document.getElementById('clear').addEventListener('click', () => {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        paths = [];
+    });
+
+    document.getElementById('undo').addEventListener('click', () => {
+        paths.pop();
+        redraw();
+    });
+
+    document.getElementById('eraser').addEventListener('click', () => {
+        penColor = '#ffffff';
+    });
+
+    function redraw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        paths.forEach(path => {
+            ctx.beginPath();
+            path.forEach((p, index) => {
+                ctx.strokeStyle = p.color;
+                ctx.lineWidth = p.size;
+                ctx.lineCap = 'round';
+                if (index === 0) {
+                    ctx.moveTo(p.x, p.y);
+                } else {
+                    ctx.lineTo(p.x, p.y);
+                    ctx.stroke();
+                }
+            });
+            ctx.beginPath();
+        });
+    }
+
+    document.getElementById('save').addEventListener('click', () => {
+        const link = document.createElement('a');
+        link.download = 'drawing.png';
+        link.href = canvas.toDataURL();
+        link.click();
+    });
+
+    document.getElementById('replay').addEventListener('click', () => {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        let i = 0;
+        function step() {
+            if (i >= paths.length) return;
+            const path = paths[i];
+            let j = 0;
+            function drawStep() {
+                if (j >= path.length) {
+                    i++;
+                    step();
+                    return;
+                }
+                const p = path[j];
+                ctx.strokeStyle = p.color;
+                ctx.lineWidth = p.size;
+                ctx.lineCap = 'round';
+                if (j === 0) {
+                    ctx.beginPath();
+                    ctx.moveTo(p.x, p.y);
+                } else {
+                    ctx.lineTo(p.x, p.y);
+                    ctx.stroke();
+                }
+                j++;
+                requestAnimationFrame(drawStep);
+            }
+            drawStep();
+        }
+        step();
+    });
+</script>
+
+</body>
+</html>
