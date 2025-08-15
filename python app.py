@@ -86,7 +86,7 @@ def on_stroke(data):
     stroke = data.get("stroke")
     if session_id and stroke:
         save_event(session_id, "stroke", stroke)
-        # broadcast to other clients in session
+
         emit("stroke", {"stroke": stroke}, room=session_id, include_self=False)
 
 @socketio.on("clear")
@@ -118,3 +118,4 @@ if __name__ == "__main__":
     init_db()
     print("Starting LiveBoard on http://127.0.0.1:5000")
     socketio.run(app, host="0.0.0.0", port=5000)
+
