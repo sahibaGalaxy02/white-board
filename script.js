@@ -343,9 +343,11 @@
   resizeCanvas();
   loadSessionHistory();
 
-  // expose to window for debugging
+  // explore the window for debugging
+
   window._lb = {
     socket, localStrokes, redrawFromMemory
   };
 
 })();
+
