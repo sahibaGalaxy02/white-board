@@ -62,7 +62,7 @@ def api_replay(session_id):
     events = load_session_events(session_id)
     return jsonify({"session_id": session_id, "events": events})
 
-# Socket.IO handlers
+
 @socketio.on("join")
 def on_join(data):
     session_id = data.get("session_id", DEFAULT_SESSION)
@@ -118,4 +118,5 @@ if __name__ == "__main__":
     init_db()
     print("Starting LiveBoard on http://127.0.0.1:5000")
     socketio.run(app, host="0.0.0.0", port=5000)
+
 
